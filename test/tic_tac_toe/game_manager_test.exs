@@ -18,7 +18,7 @@ defmodule TicTacToe.Game.GameManagerTest do
     user2 = user(2)
     {:ok, user1, game} = GameManager.start_game_session(user1)
     {:ok, user2, game} = GameManager.join_game(game, user2)
-    assert {:ok, :next, {1, 2}} == GameManager.player_turn(game, user1, {1, 2})
+    assert {:ok, :next, _} = GameManager.player_turn(game, user1, {1, 2})
   end
 
   test "it returns error when user plays invalid cell" do
@@ -31,11 +31,30 @@ defmodule TicTacToe.Game.GameManagerTest do
   end
 
   test "it returns error when user plays while it's not his turn" do
-    user1 = user(1)
-    user2 = user(2)
+    user1 = user(5)
+    user2 = user(6)
     {:ok, user1, game} = GameManager.start_game_session(user1)
     {:ok, user2, game} = GameManager.join_game(game, user2)
     assert {:error, :invalid_user} == GameManager.player_turn(game, user2, {1, 1})
+    assert game.turn == user1.id
+
+    assert {:ok, :next, game2} = GameManager.player_turn(game, user1, {1, 1})
+    refute game2.turn == user1.id
+
+    assert {:error, :invalid_user} == GameManager.player_turn(game2, user1, {1, 2})
+  end
+
+  test "user wins" do
+    user1 = user(5)
+    user2 = user(6)
+    {:ok, user1, game} = GameManager.start_game_session(user1)
+    {:ok, user2, game} = GameManager.join_game(game, user2)
+    GameManager.player_turn(game, user1, {0, 0})
+    GameManager.player_turn(game, user2, {1, 0})
+    GameManager.player_turn(game, user1, {0, 1})
+    GameManager.player_turn(game, user2, {1, 1})
+    assert {:ok, :winner, user1} == GameManager.player_turn(game, user1, {0, 2})
+
   end
 
   def user(id) do

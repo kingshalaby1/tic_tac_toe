@@ -13,7 +13,8 @@ defmodule TicTacToe.Game.Supervisor do
   end
 
   def terminate_child(game) do
-    DynamicSupervisor.terminate_child(__MODULE__, {:golbal, game.id})
+    pid = :global.whereis_name(game.id)
+    DynamicSupervisor.terminate_child(__MODULE__, pid)
   end
 
 

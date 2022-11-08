@@ -24,6 +24,7 @@ defmodule TicTacToe.Model.Game do
   end
 
   defp validate_move(state, user, cell) do
+    IO.inspect state
     id = state.game.user1
     other = case user.id do
       id -> state.game.user2
@@ -40,12 +41,18 @@ defmodule TicTacToe.Model.Game do
 #    id = user.id
     new_stats = Map.update(state.stats, user.id, [cell], fn list -> [cell | list] end)
     state = Map.update!(state, :stats, fn _ -> new_stats end)
+    state = Map.update!(state, :game, fn game -> switch_turn(game) end)
     {:ok, state, user}
 
   end
 
+  defp switch_turn(%{user1: user1, turn: turn} = game) do
+    Map.update!(game, :turn, fn _ -> if turn == user1, do: game.user2, else: user1 end)
+  end
+
   defp check_for_winner({:ok, state, user}) do
     user_stats = state.stats[user.id]
+
     checks = [
       check_horizontal(user_stats),
       check_vertical(user_stats),
@@ -60,14 +67,12 @@ defmodule TicTacToe.Model.Game do
 
   defp check_horizontal(user_stats) do
     Enum.group_by(user_stats, fn {x, _} -> x end)
-    |> Map.keys
-    |> Enum.any?(&(&1>2))
+    |> Enum.any?(fn {k, v} -> Enum.count(v) > 2 end)
   end
 
   defp check_vertical(user_stats) do
     Enum.group_by(user_stats, fn {_, y} -> y end)
-    |> Map.keys
-    |> Enum.any?(&(&1>2))
+    |> Enum.any?(fn {k, v} -> Enum.count(v) > 2 end)
   end
 
   defp check_diagonal(user_stats), do: false

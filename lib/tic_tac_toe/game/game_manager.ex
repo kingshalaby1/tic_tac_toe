@@ -35,9 +35,13 @@ defmodule TicTacToe.GameManager do
 
   def player_turn(game, user, cell) do
     with {:ok, cell} <- validate_cell(cell),
-         {:ok, user} <- validate_user(game, user) do
-            Session.play(game, user, cell)
+         {:ok, user} <- validate_user(game, user),
+         {:ok, :next, game} <- Session.play(game, user, cell) do
+          {:ok, :next, game}
     else
+      {:ok, :winner, user} = result ->
+        Supervisor.terminate_child(game)
+        result
       error -> error
     end
 

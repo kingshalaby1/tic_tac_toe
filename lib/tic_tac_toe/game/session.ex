@@ -42,7 +42,7 @@ defmodule TicTacToe.Game.Session do
         {:ok, :winner, user} ->
           {:reply, {:ok, :winner, user}, []}
         {:ok, :next, state} ->
-          {:reply, {:ok, :next, cell}, state}
+          {:reply, {:ok, :next, state.game}, state}
       end
 
   end
