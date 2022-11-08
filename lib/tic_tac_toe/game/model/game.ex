@@ -3,13 +3,76 @@ defmodule TicTacToe.Model.Game do
       domain model
   """
 
-  defstruct [:id, :user1, :user2, :state]
+  defstruct [:id, :user1, :user2, :state, :turn]
 
   def new(user) do
     %__MODULE__{
       id: UUID.uuid4(),
       user1: user.id,
-      state: :initated
+      turn: user.id
+#      state: :initated
+
     }
   end
+
+
+  def check(user, cell, state) do
+    state
+    |> validate_move(user, cell)
+    |> commit_move(user, cell)
+    |> check_for_winner
+  end
+
+  defp validate_move(state, user, cell) do
+    id = state.game.user1
+    other = case user.id do
+      id -> state.game.user2
+      _ -> state.game.user1
+    end
+    if Enum.find(state.stats[other], &(&1==cell)) || Enum.find(state.stats[user.id], &(&1==cell)) do
+      {:error, :already_taken}
+      else
+      {:ok, state}
+    end
+  end
+
+  defp commit_move({:ok, state}, user, cell) do
+#    id = user.id
+    new_stats = Map.update(state.stats, user.id, [cell], fn list -> [cell | list] end)
+    state = Map.update!(state, :stats, fn _ -> new_stats end)
+    {:ok, state, user}
+
+  end
+
+  defp check_for_winner({:ok, state, user}) do
+    user_stats = state.stats[user.id]
+    checks = [
+      check_horizontal(user_stats),
+      check_vertical(user_stats),
+      check_diagonal(user_stats)
+    ]
+    if Enum.any?(checks) do
+      {:ok, :winner, user}
+      else
+      {:ok, :next, state}
+    end
+  end
+
+  defp check_horizontal(user_stats) do
+    Enum.group_by(user_stats, fn {x, _} -> x end)
+    |> Map.keys
+    |> Enum.any?(&(&1>2))
+  end
+
+  defp check_vertical(user_stats) do
+    Enum.group_by(user_stats, fn {_, y} -> y end)
+    |> Map.keys
+    |> Enum.any?(&(&1>2))
+  end
+
+  defp check_diagonal(user_stats), do: false
+
+
+
+
 end
