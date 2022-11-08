@@ -24,10 +24,9 @@ defmodule TicTacToe.Model.Game do
   end
 
   defp validate_move(state, user, cell) do
-    IO.inspect state
     id = state.game.user1
     other = case user.id do
-      id -> state.game.user2
+      ^id -> state.game.user2
       _ -> state.game.user1
     end
     if Enum.find(state.stats[other], &(&1==cell)) || Enum.find(state.stats[user.id], &(&1==cell)) do
@@ -67,17 +66,18 @@ defmodule TicTacToe.Model.Game do
 
   defp check_horizontal(user_stats) do
     Enum.group_by(user_stats, fn {x, _} -> x end)
-    |> Enum.any?(fn {k, v} -> Enum.count(v) > 2 end)
+    |> Enum.any?(fn {_, v} -> Enum.count(v) > 2 end)
   end
 
   defp check_vertical(user_stats) do
     Enum.group_by(user_stats, fn {_, y} -> y end)
-    |> Enum.any?(fn {k, v} -> Enum.count(v) > 2 end)
+    |> Enum.any?(fn {_, v} -> Enum.count(v) > 2 end)
   end
 
-  defp check_diagonal(user_stats), do: false
+  defp check_diagonal(user_stats) do
+    diagonal_sets = [[{0, 0}, {1, 1}, {2, 2}], [{0, 2}, {1, 1}, {2, 0}]]
+    Enum.any?(diagonal_sets, fn list -> list -- user_stats == [] end)
 
-
-
+  end
 
 end
