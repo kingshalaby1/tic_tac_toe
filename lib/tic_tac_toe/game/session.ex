@@ -13,7 +13,7 @@ defmodule TicTacToe.Game.Session do
       GenServer.call({:global, game.id}, {:join, user})
   end
 
-  def play(game, user,cell) do
+  def play(game, user, cell) do
     GenServer.call({:global, game.id}, {:check, user, cell})
   end
 

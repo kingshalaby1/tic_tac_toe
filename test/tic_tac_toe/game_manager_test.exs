@@ -37,22 +37,36 @@ defmodule TicTacToe.Game.GameManagerTest do
     assert {:error, :invalid_user} == GameManager.player_turn(game, user2, {1, 1})
     assert game.turn == user1.id
 
-    assert {:ok, :next, game2} = GameManager.player_turn(game, user1, {1, 1})
-    refute game2.turn == user1.id
+    assert {:ok, :next, game} = GameManager.player_turn(game, user1, {1, 1})
+    refute game.turn == user1.id
 
-    assert {:error, :invalid_user} == GameManager.player_turn(game2, user1, {1, 2})
+    assert {:error, :invalid_user} == GameManager.player_turn(game, user1, {1, 2})
   end
 
-  test "user wins" do
+  test "user1 wins" do
     user1 = user(5)
     user2 = user(6)
     {:ok, user1, game} = GameManager.start_game_session(user1)
     {:ok, user2, game} = GameManager.join_game(game, user2)
-    GameManager.player_turn(game, user1, {0, 0})
-    GameManager.player_turn(game, user2, {1, 0})
-    GameManager.player_turn(game, user1, {0, 1})
-    GameManager.player_turn(game, user2, {1, 1})
+    {:ok, :next, game} = GameManager.player_turn(game, user1, {0, 0})
+    {:ok, :next, game} = GameManager.player_turn(game, user2, {1, 0})
+    {:ok, :next, game} = GameManager.player_turn(game, user1, {0, 1})
+    {:ok, :next, game} = GameManager.player_turn(game, user2, {1, 1})
     assert {:ok, :winner, user1} == GameManager.player_turn(game, user1, {0, 2})
+
+  end
+
+  test "user2 wins" do
+    user1 = user(5)
+    user2 = user(6)
+    {:ok, user1, game} = GameManager.start_game_session(user1)
+    {:ok, user2, game} = GameManager.join_game(game, user2)
+    {:ok, :next, game} = GameManager.player_turn(game, user1, {0, 0})
+    {:ok, :next, game} = GameManager.player_turn(game, user2, {1, 0})
+    {:ok, :next, game} = GameManager.player_turn(game, user1, {0, 1})
+    {:ok, :next, game} = GameManager.player_turn(game, user2, {1, 1})
+    {:ok, :next, game} = GameManager.player_turn(game, user1, {2, 2})
+    assert {:ok, :winner, user2} == GameManager.player_turn(game, user2, {1, 2})
 
   end
 
