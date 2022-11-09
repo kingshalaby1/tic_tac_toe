@@ -42,6 +42,9 @@ defmodule TicTacToe.GameManager do
       {:ok, :winner, user} = result ->
         Supervisor.terminate_child(game)
         result
+      {:ok, :draw} ->
+        Supervisor.terminate_child(game)
+        {:ok, :draw}
       error -> error
     end
 

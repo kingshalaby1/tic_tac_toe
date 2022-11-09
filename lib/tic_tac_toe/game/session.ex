@@ -41,8 +41,12 @@ defmodule TicTacToe.Game.Session do
       case Game.check(user, cell, state) do
         {:ok, :winner, user} ->
           {:reply, {:ok, :winner, user}, []}
+        {:ok, :draw} ->
+          {:reply, {:ok, :draw}, []}
         {:ok, :next, state} ->
           {:reply, {:ok, :next, state.game}, state}
+        {:error, reason} ->
+          {:reply, {:error, reason}, state}
       end
 
   end
