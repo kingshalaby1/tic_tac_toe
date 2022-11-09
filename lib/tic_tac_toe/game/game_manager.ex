@@ -16,10 +16,14 @@ defmodule TicTacToe.GameManager do
     {:ok, user, game}
   end
 
+  def join_game(game, :cpu) do
+    {:ok, game} = Session.join(game, :cpu)
+    {:ok, :cpu, game}
+  end
+
   def join_game(game, user) do
     user = %{user | in_game: game.id}
-#    game = Map.put(game, :user2, user.id)
-    {:ok, game} = Session.join(game, user)
+    {:ok, game} = Session.join(game, user.id)
     {:ok, user, game}
   end
 
@@ -37,9 +41,13 @@ defmodule TicTacToe.GameManager do
     with {:ok, cell} <- validate_cell(cell),
          {:ok, user} <- validate_user(game, user),
          {:ok, :next, game} <- Session.play(game, user, cell) do
-          {:ok, :next, game}
+          if(game.turn == :cpu) do
+            Session.cpu_play(game)
+          else
+            {:ok, :next, game}
+          end
     else
-      {:ok, :winner, user} = result ->
+      {:ok, :winner, ^user} = result ->
         Supervisor.terminate_child(game)
         result
       {:ok, :draw} ->

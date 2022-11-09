@@ -4,6 +4,8 @@ defmodule TicTacToe.Game.GameManagerTest do
 
   alias TicTacToe.Model.User
   alias TicTacToe.GameManager
+
+
   test "user can create new session" do
     user = user(1)
     assert {:ok, updated_user, game} = GameManager.start_game_session(user)
@@ -61,7 +63,7 @@ defmodule TicTacToe.Game.GameManagerTest do
     {:ok, :next, game} = GameManager.player_turn(game, user2, {1, 0})
     {:ok, :next, game} = GameManager.player_turn(game, user1, {0, 1})
     {:ok, :next, game} = GameManager.player_turn(game, user2, {1, 1})
-    assert {:ok, :winner, user1} == GameManager.player_turn(game, user1, {0, 2})
+    assert {:ok, :winner, user1.id} == GameManager.player_turn(game, user1, {0, 2})
 
   end
 
@@ -75,7 +77,7 @@ defmodule TicTacToe.Game.GameManagerTest do
     {:ok, :next, game} = GameManager.player_turn(game, user1, {0, 1})
     {:ok, :next, game} = GameManager.player_turn(game, user2, {1, 1})
     {:ok, :next, game} = GameManager.player_turn(game, user1, {2, 2})
-    assert {:ok, :winner, user2} == GameManager.player_turn(game, user2, {1, 2})
+    assert {:ok, :winner, user2.id} == GameManager.player_turn(game, user2, {1, 2})
 
   end
 
@@ -88,7 +90,7 @@ defmodule TicTacToe.Game.GameManagerTest do
     GameManager.player_turn(game, user2, {1, 0})
     GameManager.player_turn(game, user1, {1, 1})
     GameManager.player_turn(game, user2, {1, 2})
-    assert {:ok, :winner, user1} == GameManager.player_turn(game, user1, {2, 2})
+    assert {:ok, :winner, user1.id} == GameManager.player_turn(game, user1, {2, 2})
 
   end
 
@@ -108,6 +110,22 @@ defmodule TicTacToe.Game.GameManagerTest do
     {:ok, :next, game} = GameManager.player_turn(game, user1, {0, 2})
     {:ok, :next, game} = GameManager.player_turn(game, user2, {1, 0})
     assert {:ok, :draw} == GameManager.player_turn(game, user1, {1, 2})
+
+  end
+
+  test "cpu can play" do
+    user1 = user(1)
+
+    {:ok, user1, game} = GameManager.start_game_session(user1)
+    {:ok, :cpu, game} = GameManager.join_game(game, :cpu)
+
+    Phoenix.PubSub.subscribe(TicTacToe.PubSub, game.id)
+    {:ok, :next, _game} = GameManager.player_turn(game, user1, {0, 0})
+
+    {:messages, [{:cpu_checked, _cell}]} = Process.info(self(), :messages)
+
+
+
 
   end
 

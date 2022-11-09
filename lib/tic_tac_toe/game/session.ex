@@ -3,8 +3,8 @@ defmodule TicTacToe.Game.Session do
   use GenServer
 
   alias TicTacToe.Model.Game
+  alias TicTacToe.Game.Cpu
 
-#  @initial_board [{0, 0}, {0, 1}, {0, 2}, {1, 0}, {1, 1}, {1, 2}, {2, 0}, {2, 1}, {2, 2}]
   def start_link(game) do
     GenServer.start_link(__MODULE__, game, name: {:global, game.id})
   end
@@ -13,15 +13,24 @@ defmodule TicTacToe.Game.Session do
       GenServer.call({:global, game.id}, {:join, user})
   end
 
+  def play(game, :cpu, cell) do
+    GenServer.call({:global, game.id}, {:check, :cpu, cell})
+  end
   def play(game, user, cell) do
-    GenServer.call({:global, game.id}, {:check, user, cell})
+    GenServer.call({:global, game.id}, {:check, user.id, cell})
+  end
+
+  def cpu_play(game) do
+    # stats should be in the loop instead of 2 calls for CPU
+    {:ok, stats} = GenServer.call({:global, game.id}, :get_opponent_stats)
+
+    Cpu.next_move(game, stats)
   end
 
 
 
   @impl true
   def init(game) do
-#    Map.put(game_state, :board, @initial_board)
     state = %{game: game, stats: %{game.user1 => []}}
     {:ok, state}
   end
@@ -29,8 +38,8 @@ defmodule TicTacToe.Game.Session do
   @impl true
   def handle_call({:join, user}, _from, state) do
 
-    state = Map.update!(state, :game, fn game -> Map.put(game, :user2, user.id) end)
-    state = Map.update!(state, :stats, fn stats -> Map.put(stats, user.id, []) end)
+    state = Map.update!(state, :game, fn game -> Map.put(game, :user2, user) end)
+    state = Map.update!(state, :stats, fn stats -> Map.put(stats, user, []) end)
     {:reply, {:ok, state.game}, state}
 
   end
@@ -49,6 +58,11 @@ defmodule TicTacToe.Game.Session do
           {:reply, {:error, reason}, state}
       end
 
+  end
+
+  @impl true
+  def handle_call(:get_opponent_stats, _from, state) do
+    {:reply, {:ok, {state.stats[state.game.user1], state.stats[state.game.user2]}}, state}
   end
 
 
